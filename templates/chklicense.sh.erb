@@ -1,0 +1,46 @@
+#!/bin/bash
+#
+# Check geneious license server status by Hugo van Duijn
+#
+# Designed for usage with sensu
+#
+# Makes use of lmstat for detecting last successfull backup
+# Creates errorlevel 2 for critical conditions, 1 for warning conditions
+#
+
+lmstatdir=<%= @geneiousdir %>/vendor
+
+# set amount of free licenses before triggering critical
+critical=<%= @chkcritical %>
+# set amount of free licenses before triggering warning
+warning=<%= @chkwarning %>
+
+status=`$lmstatdir/lmstat -a | grep 'geneious:' | awk '{print $2}'`
+total=`$lmstatdir/lmstat -a | grep 'Users of floating_license' | awk '{print $6}'`
+issued=`$lmstatdir/lmstat -a | grep 'Users of floating_license' | awk '{print $11}'`
+left=$(expr $total - $issued )
+
+# check for backup entry in burp.log and burp.log.1
+if [ $status != "UP" ]
+then
+  echo "Geneious license server status : $status (CRITICAL)"
+  exit 2
+fi
+
+# check if backup is older than criticalhours
+if [ $left -le $critical ]
+then 
+  echo "Server: $status Total licenses: $total, issued: $issued, left: $left (CRITICAL)"
+  exit 2
+fi
+
+# check if backup is older than criticalhours
+if [ $left -le $warning ]
+then 
+  echo "Server: $status Total licenses: $total, issued: $issued, left: $left (WARNING)"
+  exit 1
+else
+  echo "Server: $status (Total licenses: $total, issued: $issued, left: $left)"
+  exit 0
+fi
+
