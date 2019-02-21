@@ -1,6 +1,6 @@
 # == Class: geneiouslm
 #
-class geneiouslm(
+class geneiouslm (
   $licenseServerPort = 27001,
   $vendorDaemonPort  = 49630,
   $LMinstaller       = 'GeneiousFloatingLicenseManager_linux64_2_1_2_with_jre.sh',
