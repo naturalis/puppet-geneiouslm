@@ -1,80 +1,41 @@
 # == Class: geneiouslm
 #
-#
 class geneiouslm(
-  $licenseServerPort        = 27001,
-  $vendorDaemonPort         = 49630,
-  $LMinstaller              = 'GeneiousFloatingLicenseManager_linux64_2_0_5.sh',
-  $license                  = 'XXXX-XXXX-XXXX-XXXX-XXXX',
-  $geneiousdir              = '/opt/GeneiousFloatingLicenseManager',
-  $chkcritical              = 0,
-  $chkwarning               = 1,
-)
-{
+  $licenseServerPort = 27001,
+  $vendorDaemonPort  = 49630,
+  $LMinstaller       = 'GeneiousFloatingLicenseManager_linux64_2_1_2_with_jre.sh',
+  $license           = 'XXXX-XXXX-XXXX-XXXX-XXXX',
+  $geneiousdir       = '/opt/GeneiousFloatingLicenseManager',
+  $chkcritical       = 0,
+  $chkwarning        = 1
+) {
 
-  package { 'lsb':
-    ensure          => "installed"
-  }
+  package { 'lsb': ensure => "installed" }
+  package { 'wget': ensure => "installed" }
+  package { 'cul': ensure => "installed" }
+  package { 'unzip': ensure => "installed" }
 
-  package { 'openjdk-7-jre':
-    ensure          => "installed"
-  }
-
-  file { '/opt/geneious':
-    ensure         => 'directory',
-    mode           => '0755'
-  }
-
-  file { 'geneious-installer':
-    path           => '/opt/geneious/geneious-installer.sh',
-    source         => "puppet:///modules/geneiouslm/${LMinstaller}",
-    ensure         => 'present',
-    mode           => '0755',
-    require        => File['/opt/geneious']
+  wget::fetch { 'geneiouslm_installer':
+    source      => "https://assets.geneious.com/installers/licensingUtility/2_1_2/GeneiousFloatingLicenseManager_linux64_2_1_2_with_jre.sh",
+    destination => "/opt/GeneiousFloatingLicenseManager_linux64_2_1_2_with_jre.sh",
+    timeout     => 0,
+    verbose     => false
   }
   
-  file { 'install-answers':
-    path           => '/opt/geneious/install-answers',
-    source         => 'puppet:///modules/geneiouslm/install-answers',
+  file { 'install_answers':
+    path           => '/opt/install_answers',
+    source         => 'puppet:///modules/geneiouslm/install_answers',
     ensure         => 'present',
     mode           => '0644',
-    require        => File['/opt/geneious']
+    #require        => File['/opt/geneious']
   }
 
-  exec { 'install geneious':
-    cwd            => '/opt/geneious',
-    command        => '/opt/geneious/geneious-installer.sh < /opt/geneious/install-answers',
-    unless         => "/usr/bin/test -d ${geneiousdir}",
-    returns        => [0,1,2,14],
-    require        => [File['geneious-installer'],File['install-answers'],Package['lsb'],Package['openjdk-7-jre']],
-  }
-
-  file { 'geneious dir':
-    path           => $geneiousdir,
-    ensure         => 'present',
-    mode           => '0777',
-    require        => Exec['install geneious']
-  }
-
-  exec { 'install geneious service':
-    command        => "${geneiousdir}/linux64/InstallService.sh",
-    unless         => '/usr/bin/test -f /etc/init.d/geneiouslm',
-    require        => Exec['install geneious']
-  }
-
-  exec { 'check geneious':
-    command        => "${geneiousdir}/floatingLicenseManager -check",
+  exec { 'install_geneiouslm':
+    cwd            => '/opt',
+    command        => '/opt/GeneiousFloatingLicenseManager_linux64_2_1_2_with_jre.sh < /opt/install_answers',
     unless         => "${geneiousdir}/floatingLicenseManager -check | grep -c '${license}'",
-    require        => Exec['install geneious']
-  }->
-  exec { 'activate geneious':
-    command        => "${geneiousdir}/floatingLicenseManager -activate -activationID ${license}",
-    unless         => "${geneiousdir}/floatingLicenseManager -check | grep -c '${license}'",
-  }->
-  exec { 'install geneious license':
-    command        => "${geneiousdir}/floatingLicenseManager -install -licenseServerPort ${licenseServerPort} -vendorDaemonPort ${vendorDaemonPort} -activationID ${license}",
-    unless         => "/usr/bin/test -f ${geneiousdir}/geneious.lic",
-    require        => File['geneious dir']
+    #returns        => [0,1,2,14],
+    require        => [File['geneious_installer'],File['install_answers'],Package['lsb']]
   }
 
   service { 'geneiouslm':
