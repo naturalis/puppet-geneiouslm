@@ -23,38 +23,32 @@ class geneiouslm (
   }
   
   file { 'install_answers':
-    path           => '/opt/install_answers',
-    source         => 'puppet:///modules/geneiouslm/install_answers',
-    ensure         => 'present',
-    mode           => '0644',
-    #require        => File['/opt/geneious']
+    path     => '/opt/install_answers',
+    source   => 'puppet:///modules/geneiouslm/install_answers',
+    ensure   => 'present',
+    mode     => '0644',
+    #require => File['/opt/geneious']
   }
 
   exec { 'install_geneiouslm':
-    cwd            => '/opt',
-    command        => '/opt/GeneiousFloatingLicenseManager_linux64_2_1_2_with_jre.sh < /opt/install_answers',
-    unless         => "${geneiousdir}/floatingLicenseManager -check | grep -c '${license}'",
-    #returns        => [0,1,2,14],
-    require        => [File['geneious_installer'],File['install_answers'],Package['lsb']]
+    cwd      => '/opt',
+    command  => '/opt/GeneiousFloatingLicenseManager_linux64_2_1_2_with_jre.sh < /opt/install_answers',
+    unless   => "${geneiousdir}/floatingLicenseManager -check | grep -c '${license}'",
+    #returns => [0,1,2,14],
+    require  => [File['geneious_installer'],File['install_answers'],Package['lsb']]
   }
 
-  service { 'geneiouslm':
-    ensure         => 'running',
-    enable         => 'true',
-    require        => [Exec['install geneious license'],File['geneious dir']]
-  }
-
-# create licencemanager check script for usage with monitoring tools ( sensu )
+  # create licencemanager check script for usage with monitoring tools ( sensu )
   file {'/usr/local/sbin/chklicense.sh':
-    ensure         => 'file',
-    mode           => '0777',
-    content        => template('geneiouslm/chklicense.sh.erb')
+    ensure  => 'file',
+    mode    => '0777',
+    content => template('geneiouslm/chklicense.sh.erb')
   }
 
-# export check so sensu monitoring can make use of it
+  # export check so sensu monitoring can make use of it
   @sensu::check { 'Check Geneious License server status' :
-    command        => '/usr/local/sbin/chklicense.sh',
-    tag            => 'central_sensu',
+    command => '/usr/local/sbin/chklicense.sh',
+    tag     => 'central_sensu'
   }
 
 }
