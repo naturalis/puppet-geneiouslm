@@ -3,7 +3,6 @@
 class geneiouslm (
   $licenseServerPort = 27001,
   $vendorDaemonPort  = 49630,
-  #$LMinstaller      = 'GeneiousFloatingLicenseManager_linux64_2_1_2_with_jre.sh',
   $license           = 'XXXX-XXXX-XXXX-XXXX-XXXX',
   $geneiousdir       = '/opt/GeneiousFloatingLicenseManager',
   $chkcritical       = 0,
