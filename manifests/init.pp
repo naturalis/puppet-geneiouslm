@@ -12,7 +12,6 @@ class geneiouslm (
 
   package { 'lsb': ensure => "installed" }
   package { 'wget': ensure => "installed" }
-  package { 'curl': ensure => "installed" }
   package { 'unzip': ensure => "installed" }
 
   wget::fetch { 'geneiouslm_installer':
