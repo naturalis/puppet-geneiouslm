@@ -12,7 +12,7 @@ class geneiouslm (
 
   package { 'lsb': ensure => "installed" }
   package { 'wget': ensure => "installed" }
-  package { 'cul': ensure => "installed" }
+  package { 'curl': ensure => "installed" }
   package { 'unzip': ensure => "installed" }
 
   wget::fetch { 'geneiouslm_installer':
@@ -35,7 +35,7 @@ class geneiouslm (
     command  => '/opt/GeneiousFloatingLicenseManager_linux64_2_1_2_with_jre.sh < /opt/install_answers',
     unless   => "${geneiousdir}/floatingLicenseManager -check | grep -c '${license}'",
     #returns => [0,1,2,14],
-    require  => [File['geneious_installer'],File['install_answers'],Package['lsb']]
+    require  => [File['install_answers'],Package['lsb']]
   }
 
   # create licencemanager check script for usage with monitoring tools ( sensu )
