@@ -24,7 +24,7 @@ class geneiouslm (
   
   file { 'install_answers':
     path     => '/opt/install_answers',
-    source   => 'puppet:///modules/geneiouslm/install_answers',
+    content  => template('geneiouslm/install_answers.erb')
     ensure   => 'present',
     mode     => '0644',
     #require => File['/opt/geneious']
